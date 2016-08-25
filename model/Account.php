@@ -104,7 +104,7 @@ class Account extends Database
                 $output['result'] = 'false';
                 $output['data']['Message'] = 'type輸入錯誤';
             } else {
-                $sql = "SELECT `aID`, `aName` FROM `account` WHERE `aName` = :username";
+                $sql = "SELECT * FROM `account` WHERE `aName` = :username";
                 $result = $this->prepare($sql);
                 $result->bindParam('username', $username);
                 $result->execute();
@@ -117,39 +117,47 @@ class Account extends Database
                     $aID = $row['aID'];
 
                     if ($type === 'OUT') {
-                        $amount = -$amount;
+                        if ($row['balance'] < $amount) {
+                            $output['result'] = 'false';
+                            $output['data']['Message'] = '餘額不足';
+                        } else {
+                            $amount = -$amount;
+                        }
                     }
 
-                    $sql = "SELECT `tID` FROM `transfer` WHERE `tID` = :tID";
-                    $result = $this->prepare($sql);
-                    $result->bindParam('tID', $transid);
-                    $result->execute();
-                    $row = $result->fetch();
+                    if (!isset($output)) {
+                        $sql = "SELECT `tID` FROM `transfer` WHERE `tID` = :tID";
+                        $result = $this->prepare($sql);
+                        $result->bindParam('tID', $transid);
+                        $result->execute();
+                        $row = $result->fetch();
 
-                    if (isset($row['tID'])) {
-                        $output['result'] = 'false';
-                        $output['data']['Message'] = '已有該轉帳序號';
-                    } else {
-                        $sql = "UPDATE `account` SET `balance` = " .
-                        "`balance` + :amount WHERE `aID` = :aID";
-                        $sh = $this->prepare($sql);
-                        $sh->bindParam('aID', $aID);
-                        $sh->bindParam('amount', $amount);
-                        $sh->execute();
-
-                        $sql = "INSERT INTO `transfer`(`tID`, `aID`, " .
-                        "`amount`) VALUES (:tID, :aID, :amount)";
-                        $sh = $this->prepare($sql);
-                        $sh->bindParam('tID', $transid);
-                        $sh->bindParam('aID', $aID);
-                        $sh->bindParam('amount', $amount);
-
-                        if ($sh->execute()) {
-                            $output['result'] = 'true';
-                            $output['data']['Message'] = '轉帳成功';
-                        } else {
+                        if (isset($row['tID'])) {
                             $output['result'] = 'false';
-                            $output['data']['Message'] = '轉帳失敗';
+                            $output['data']['Message'] = '已有該轉帳序號';
+                        } else {
+
+                            $sql = "UPDATE `account` SET `balance` = " .
+                            "`balance` + :amount WHERE `aID` = :aID";
+                            $sh = $this->prepare($sql);
+                            $sh->bindParam('aID', $aID);
+                            $sh->bindParam('amount', $amount);
+                            $sh->execute();
+
+                            $sql = "INSERT INTO `transfer`(`tID`, `aID`, " .
+                            "`amount`) VALUES (:tID, :aID, :amount)";
+                            $sh = $this->prepare($sql);
+                            $sh->bindParam('tID', $transid);
+                            $sh->bindParam('aID', $aID);
+                            $sh->bindParam('amount', $amount);
+
+                            if ($sh->execute()) {
+                                $output['result'] = 'true';
+                                $output['data']['Message'] = '轉帳成功';
+                            } else {
+                                $output['result'] = 'false';
+                                $output['data']['Message'] = '轉帳失敗';
+                            }
                         }
                     }
                 }
