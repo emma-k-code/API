@@ -12,16 +12,16 @@ class Account extends Database
     {
         if (!isset($_GET['username'])) {
             $output['result'] = 'false';
-            $output['data']['Message'] = '沒有所需參數';
+            $output['data']['Message'] = 'The parameters are not complete.';
         } else {
             $username = addslashes($_GET['username']);
 
             if ((strlen($username) < 4) || (strlen($username) > 20)) {
                 $output['result'] = 'false';
-                $output['data']['Message'] = '帳號長度錯誤';
+                $output['data']['Message'] = 'Length of the account is error.';
             } elseif (!preg_match( '/^([0-9a-zA-Z]+)$/', $username)) {
                 $output['result'] = 'false';
-                $output['data']['Message'] = '帳號包含非英文和數字的字元';
+                $output['data']['Message'] = 'The format of account is wrong.';
             } else {
                 $sql = "SELECT `aName` FROM `account` WHERE `aName` = :username";
                 $result = $this->prepare($sql);
@@ -31,7 +31,7 @@ class Account extends Database
 
                 if (isset($row['aName'])) {
                     $output['result'] = 'false';
-                    $output['data']['Message'] = '帳號已存在';
+                    $output['data']['Message'] = 'The account is repeated.';
                 } else {
                     $sql = "INSERT INTO `account`(`aName`) VALUES (:username)";
                     $sh = $this->prepare($sql);
@@ -39,10 +39,10 @@ class Account extends Database
 
                     if ($sh->execute()) {
                         $output['result'] = 'true';
-                        $output['data']['Message'] = '帳號建立成功';
+                        $output['data']['Message'] = 'Add account successful.';
                     } else {
                         $output['result'] = 'false';
-                        $output['data']['Message'] = '帳號建立失敗';
+                        $output['data']['Message'] = 'Add account failed.';
                     }
                 }
             }
@@ -55,7 +55,7 @@ class Account extends Database
     {
         if (!isset($_GET['username'])) {
             $output['result'] = 'false';
-            $output['data']['Message'] = '沒有所需參數';
+            $output['data']['Message'] = 'The parameters are not complete.';
         } else {
             $username = addslashes($_GET['username']);
 
@@ -67,7 +67,7 @@ class Account extends Database
 
             if (!isset($row['aName'])) {
                 $output['result'] = 'false';
-                $output['data']['Message'] = '無此帳號';
+                $output['data']['Message'] = 'The account is not exist.';
             } else {
                 $sql = "SELECT `balance` FROM `account` WHERE `aName` = :username";
                 $result = $this->prepare($sql);
@@ -87,7 +87,7 @@ class Account extends Database
     {
         if ((!isset($_GET['username'])) && (!isset($_GET['transid'])) && (!isset($_GET['type'])) && (!isset($_GET['amount']))) {
             $output['result'] = 'false';
-            $output['data']['Message'] = '沒有所需參數';
+            $output['data']['Message'] = 'The parameters are not complete.';
         } else {
             $username = addslashes($_GET['username']);
             $transid = addslashes($_GET['transid']);
@@ -96,13 +96,13 @@ class Account extends Database
 
             if (!preg_match( '/^([0-9]+)$/', $transid)) {
                 $output['result'] = 'false';
-                $output['data']['Message'] = '轉帳序號格式錯誤';
+                $output['data']['Message'] = 'The format of transid is wrong.';
             } else if (!preg_match( '/^([0-9]+)$/', $amount)) {
                 $output['result'] = 'false';
-                $output['data']['Message'] = '轉帳金額輸入錯誤';
+                $output['data']['Message'] = 'The format of amount is wrong.';
             } elseif (($type != 'IN') && ($type != 'OUT')){
                 $output['result'] = 'false';
-                $output['data']['Message'] = 'type輸入錯誤';
+                $output['data']['Message'] = 'The format of type is wrong.';
             } else {
                 $sql = "SELECT * FROM `account` WHERE `aName` = :username";
                 $result = $this->prepare($sql);
@@ -112,14 +112,14 @@ class Account extends Database
 
                 if (!isset($row['aName'])) {
                     $output['result'] = 'false';
-                    $output['data']['Message'] = '無此帳號';
+                    $output['data']['Message'] = 'The account is not exist.';
                 } else {
                     $aID = $row['aID'];
 
                     if ($type === 'OUT') {
                         if ($row['balance'] < $amount) {
                             $output['result'] = 'false';
-                            $output['data']['Message'] = '餘額不足';
+                            $output['data']['Message'] = 'Insufficient Account Balance';
                         } else {
                             $amount = -$amount;
                         }
@@ -134,7 +134,7 @@ class Account extends Database
 
                         if (isset($row['tID'])) {
                             $output['result'] = 'false';
-                            $output['data']['Message'] = '已有該轉帳序號';
+                            $output['data']['Message'] = 'The transid is repeated.';
                         } else {
                             $sql = "INSERT INTO `transfer`(`tID`, `aID`, " .
                             "`amount`) VALUES (:tID, :aID, :amount)";
@@ -152,10 +152,10 @@ class Account extends Database
                                 $sh->execute();
 
                                 $output['result'] = 'true';
-                                $output['data']['Message'] = '轉帳成功';
+                                $output['data']['Message'] = 'Transfer successful';
                             } else {
                                 $output['result'] = 'false';
-                                $output['data']['Message'] = '轉帳失敗';
+                                $output['data']['Message'] = 'Transfer failed';
                             }
                         }
                     }
@@ -170,13 +170,13 @@ class Account extends Database
     {
         if ((!isset($_GET['transid']))) {
             $output['result'] = 'false';
-            $output['data']['Message'] = '沒有所需參數';
+            $output['data']['Message'] = 'The parameters are not complete.';
         } else {
             $transid = addslashes($_GET['transid']);
 
             if (!preg_match( '/^([0-9]+)$/', $transid)) {
                 $output['result'] = 'false';
-                $output['data']['Message'] = '轉帳序號格式錯誤';
+                $output['data']['Message'] = 'The format of transid is wrong.';
             } else {
 
                 $sql = "SELECT * FROM `transfer` WHERE `tID` = :tID";
@@ -190,15 +190,15 @@ class Account extends Database
                     $output['data']['TransID'] = $row['tID'];
 
                     if ($row['amount'] > 0) {
-                        $output['data']['TransType'] = '轉入';
+                        $output['data']['TransType'] = 'IN';
                     } else {
-                        $output['data']['TransType'] = '轉出';
+                        $output['data']['TransType'] = 'OUT';
                     }
 
-                    $output['data']['Message'] = '轉帳結果為成功';
+                    $output['data']['Message'] = 'Result is Successful';
                 } else {
                     $output['result'] = 'false';
-                    $output['data']['Message'] = '查無此轉帳序號';
+                    $output['data']['Message'] = 'The transid is not exist.';
                 }
             }
 
