@@ -50,4 +50,37 @@ class Account extends Database
 
         echo json_encode($output,JSON_UNESCAPED_UNICODE);
     }
+
+    public function getBalance()
+    {
+        if (!isset($_GET['username'])) {
+            $output['result'] = 'false';
+            $output['data']['Message'] = '沒有所需參數';
+        } else {
+            $username = addslashes($_GET['username']);
+
+            $sql = "SELECT `aName` FROM `account` WHERE `aName` = :username";
+            $result = $this->prepare($sql);
+            $result->bindParam('username', $username);
+            $result->execute();
+            $row = $result->fetch();
+
+            if (!isset($row['aName'])) {
+                $output['result'] = 'false';
+                $output['data']['Message'] = '無此帳號';
+            } else {
+                $sql = "SELECT `balance` FROM `account` WHERE `aName` = :username";
+                $result = $this->prepare($sql);
+                $result->bindParam('username', $username);
+                $result->execute();
+                $row = $result->fetch();
+
+                $output['result'] = 'true';
+                $output['data']['Balance'] = $row['balance'];
+            }
+        }
+
+        echo json_encode($output,JSON_UNESCAPED_UNICODE);
+    }
+
 }
