@@ -136,14 +136,6 @@ class Account extends Database
                             $output['result'] = 'false';
                             $output['data']['Message'] = '已有該轉帳序號';
                         } else {
-
-                            $sql = "UPDATE `account` SET `balance` = " .
-                            "`balance` + :amount WHERE `aID` = :aID";
-                            $sh = $this->prepare($sql);
-                            $sh->bindParam('aID', $aID);
-                            $sh->bindParam('amount', $amount);
-                            $sh->execute();
-
                             $sql = "INSERT INTO `transfer`(`tID`, `aID`, " .
                             "`amount`) VALUES (:tID, :aID, :amount)";
                             $sh = $this->prepare($sql);
@@ -152,6 +144,13 @@ class Account extends Database
                             $sh->bindParam('amount', $amount);
 
                             if ($sh->execute()) {
+                                $sql = "UPDATE `account` SET `balance` = " .
+                                "`balance` + :amount WHERE `aID` = :aID";
+                                $sh = $this->prepare($sql);
+                                $sh->bindParam('aID', $aID);
+                                $sh->bindParam('amount', $amount);
+                                $sh->execute();
+
                                 $output['result'] = 'true';
                                 $output['data']['Message'] = '轉帳成功';
                             } else {

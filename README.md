@@ -16,7 +16,7 @@ Result - {"result":"回傳結果(true or false)","data":{"Balance":"餘額",("Me
 <h3>3.轉帳</h3>
 API名稱 - transfer<br>
 必要參數1 - username 帳號名稱<br>
-必要參數2 - transid 轉帳序號 (唯一值)<長度限制為11><br>
+必要參數2 - transid 轉帳序號 (唯一值 請輸入1-2147683647)<br>
 必要參數3 - type 轉帳型態 (IN 為轉入, OUT 為轉出)<br>
 必要參數4 - amount 轉帳金額 (正整數)<br>
 Result - {"result":"回傳結果(true or false)","data":{"Message":"訊息"}}<br>
