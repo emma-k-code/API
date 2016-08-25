@@ -18,6 +18,7 @@ API名稱 - transfer<br>
 
 <h3>4.轉帳確認</h3>
 API名稱 - checkTransfer<br>
+必要參數1 - transid 轉帳序號<br>
 
 
 
