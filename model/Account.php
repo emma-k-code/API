@@ -83,4 +83,80 @@ class Account extends Database
         echo json_encode($output,JSON_UNESCAPED_UNICODE);
     }
 
+    public function transfer()
+    {
+        if ((!isset($_GET['username'])) && (!isset($_GET['transid'])) && (!isset($_GET['type'])) && (!isset($_GET['amount']))) {
+            $output['result'] = 'false';
+            $output['data']['Message'] = '沒有所需參數';
+        } else {
+            $username = addslashes($_GET['username']);
+            $transid = addslashes($_GET['transid']);
+            $type = addslashes($_GET['type']);
+            $amount = addslashes($_GET['amount']);
+
+            if (!preg_match( '/^([0-9]+)$/', $transid)) {
+                $output['result'] = 'false';
+                $output['data']['Message'] = '轉帳序號格式錯誤';
+            } else if (!preg_match( '/^([0-9]+)$/', $amount)) {
+                $output['result'] = 'false';
+                $output['data']['Message'] = '轉帳金額輸入錯誤';
+            } elseif (($type != 'IN') && ($type != 'OUT')){
+                $output['result'] = 'false';
+                $output['data']['Message'] = 'type輸入錯誤';
+            } else {
+                $sql = "SELECT `aID`, `aName` FROM `account` WHERE `aName` = :username";
+                $result = $this->prepare($sql);
+                $result->bindParam('username', $username);
+                $result->execute();
+                $row = $result->fetch();
+
+                if (!isset($row['aName'])) {
+                    $output['result'] = 'false';
+                    $output['data']['Message'] = '無此帳號';
+                } else {
+                    $aID = $row['aID'];
+
+                    if ($type === 'OUT') {
+                        $amount = -$amount;
+                    }
+
+                    $sql = "SELECT `tID` FROM `transfer` WHERE `tID` = :tID";
+                    $result = $this->prepare($sql);
+                    $result->bindParam('tID', $transid);
+                    $result->execute();
+                    $row = $result->fetch();
+
+                    if (isset($row['tID'])) {
+                        $output['result'] = 'false';
+                        $output['data']['Message'] = '已有該轉帳序號';
+                    } else {
+                        $sql = "UPDATE `account` SET `balance` = " .
+                        "`balance` + :amount WHERE `aID` = :aID";
+                        $sh = $this->prepare($sql);
+                        $sh->bindParam('aID', $aID);
+                        $sh->bindParam('amount', $amount);
+                        $sh->execute();
+
+                        $sql = "INSERT INTO `transfer`(`tID`, `aID`, " .
+                        "`amount`) VALUES (:tID, :aID, :amount)";
+                        $sh = $this->prepare($sql);
+                        $sh->bindParam('tID', $transid);
+                        $sh->bindParam('aID', $aID);
+                        $sh->bindParam('amount', $amount);
+
+                        if ($sh->execute()) {
+                            $output['result'] = 'true';
+                            $output['data']['Message'] = '轉帳成功';
+                        } else {
+                            $output['result'] = 'false';
+                            $output['data']['Message'] = '轉帳失敗';
+                        }
+                    }
+                }
+            }
+        }
+
+        echo json_encode($output,JSON_UNESCAPED_UNICODE);
+    }
+
 }
