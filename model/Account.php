@@ -159,4 +159,45 @@ class Account extends Database
         echo json_encode($output,JSON_UNESCAPED_UNICODE);
     }
 
+    public function checkTransfer()
+    {
+        if ((!isset($_GET['transid']))) {
+            $output['result'] = 'false';
+            $output['data']['Message'] = '沒有所需參數';
+        } else {
+            $transid = addslashes($_GET['transid']);
+
+            if (!preg_match( '/^([0-9]+)$/', $transid)) {
+                $output['result'] = 'false';
+                $output['data']['Message'] = '轉帳序號格式錯誤';
+            } else {
+
+                $sql = "SELECT * FROM `transfer` WHERE `tID` = :tID";
+                $result = $this->prepare($sql);
+                $result->bindParam('tID', $transid);
+                $result->execute();
+                $row = $result->fetch();
+
+                if (isset($row['tID'])) {
+                    $output['result'] = 'true';
+                    $output['data']['TransID'] = $row['tID'];
+
+                    if ($row['amount'] > 0) {
+                        $output['data']['TransType'] = '轉入';
+                    } else {
+                        $output['data']['TransType'] = '轉出';
+                    }
+
+                    $output['data']['Message'] = '轉帳結果為成功';
+                } else {
+                    $output['result'] = 'false';
+                    $output['data']['Message'] = '查無此轉帳序號';
+                }
+            }
+
+        }
+
+        echo json_encode($output,JSON_UNESCAPED_UNICODE);
+    }
+
 }
